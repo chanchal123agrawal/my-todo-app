@@ -1,70 +1,65 @@
-# Getting Started with Create React App
+Installation:
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+Bash
 
-## Available Scripts
+npm install --save-dev @testing-library/react @testing-library/jest-dom jest
+# or
+yarn add --dev @testing-library/react @testing-library/jest-dom jest
+You might also need to configure jest for React. If you created your app with Create React App, it's usually set up for you.
 
-In the project directory, you can run:
+Example Test File (TodoList.test.js):
 
-### `npm start`
+JavaScript
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
+import React from 'react';
+import { render, screen, fireEvent } from '@testing-library/react';
+import '@testing-library/jest-dom';
+import TodoList from './TodoList'; // Adjust path
 
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
+// Clear localStorage before each test to ensure isolation
+beforeEach(() => {
+  localStorage.clear();
+});
 
-### `npm test`
+test('renders "My To-Do List" heading', () => {
+  render(<TodoList />);
+  expect(screen.getByText(/my to-do list/i)).toBeInTheDocument();
+});
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+test('allows adding a new task', () => {
+  render(<TodoList />);
+  const input = screen.getByPlaceholderText(/add a new task/i);
+  const addButton = screen.getByRole('button', { name: /add task/i });
 
-### `npm run build`
+  fireEvent.change(input, { target: { value: 'Buy groceries' } });
+  fireEvent.click(addButton);
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+  expect(screen.getByText(/buy groceries/i)).toBeInTheDocument();
+  expect(input).toHaveValue(''); // Input should be cleared
+});
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+test('shows error if task input is empty', () => {
+  render(<TodoList />);
+  const addButton = screen.getByRole('button', { name: /add task/i });
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+  fireEvent.click(addButton); // Click without typing
 
-### `npm run eject`
+  expect(screen.getByText(/task cannot be empty/i)).toBeInTheDocument();
+  expect(screen.queryByRole('listitem')).not.toBeInTheDocument(); // No task should be added
+});
 
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
+test('allows marking a task as complete', () => {
+  render(<TodoList />);
+  const input = screen.getByPlaceholderText(/add a new task/i);
+  const addButton = screen.getByRole('button', { name: /add task/i });
 
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+  fireEvent.change(input, { target: { value: 'Learn React' } });
+  fireEvent.click(addButton);
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
+  const taskItem = screen.getByText(/learn react/i);
+  fireEvent.click(taskItem); // Click to complete
 
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
+  expect(taskItem).toHaveClass('completed');
+});
 
-## Learn More
-
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
-
-To learn React, check out the [React documentation](https://reactjs.org/).
-
-### Code Splitting
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
-
-### Analyzing the Bundle Size
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
-
-### Making a Progressive Web App
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
-
-### Advanced Configuration
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
-
-### Deployment
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
-
-### `npm run build` fails to minify
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+// You would add more tests for filtering, sorting, removal, and localStorage persiste
